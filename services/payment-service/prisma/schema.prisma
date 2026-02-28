@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PaymentStatus {
+  pending
+  completed
+  failed
+  refunded
+}
+
+enum PaymentProvider {
+  stripe
+  razorpay
+}
+
+model Payment {
+  id                String         @id @default(uuid())
+  companyId         String         @map("company_id")
+  subscriptionId    String         @map("subscription_id")
+  amount            Int
+  currency          String         @default("INR")
+  status            PaymentStatus  @default(pending)
+  provider          PaymentProvider
+  providerPaymentId String?       @map("provider_payment_id")
+  providerOrderId   String?       @map("provider_order_id")
+  providerSignature String?       @map("provider_signature")
+  metadata          Json?
+  failureReason     String?       @map("failure_reason")
+  paidAt            DateTime?     @map("paid_at")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  invoice           Invoice?
+
+  @@index([companyId])
+  @@index([subscriptionId])
+  @@index([providerPaymentId])
+  @@map("payments")
+}
+
+model Invoice {
+  id            String   @id @default(uuid())
+  paymentId     String   @unique @map("payment_id")
+  invoiceNumber String   @unique @map("invoice_number")
+  companyId     String   @map("company_id")
+  companyName   String   @map("company_name")
+  companyGst    String?  @map("company_gst")
+  plan          String
+  amount        Int
+  tax           Int      @default(0)
+  totalAmount   Int      @map("total_amount")
+  currency      String   @default("INR")
+  issuedAt      DateTime @default(now()) @map("issued_at")
+
+  payment       Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@map("invoices")
+}

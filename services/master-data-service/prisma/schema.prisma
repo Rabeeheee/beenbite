@@ -1,0 +1,132 @@
+// ============================================
+// Master Data Service - Prisma Schema
+// Industries, reward templates, platform config
+// ============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Status {
+  active
+  inactive
+}
+
+model Industry {
+  id            String   @id @default(uuid())
+  name          String   @unique
+  slug          String   @unique
+  description   String?
+  icon          String?
+  image         String?
+  isActive      Boolean  @default(true) @map("is_active")
+  sortOrder     Int      @default(0) @map("sort_order")
+
+  rewardTemplates RewardTemplate[]
+  categoryTemplates CategoryTemplate[]
+
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([isActive])
+  @@map("industries")
+}
+
+model CategoryTemplate {
+  id            String   @id @default(uuid())
+  industryId    String   @map("industry_id")
+  name          String
+  description   String?
+  icon          String?
+  isActive      Boolean  @default(true) @map("is_active")
+  sortOrder     Int      @default(0) @map("sort_order")
+
+  industry      Industry @relation(fields: [industryId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@unique([industryId, name])
+  @@map("category_templates")
+}
+
+model RewardTemplate {
+  id              String   @id @default(uuid())
+  industryId      String   @map("industry_id")
+  name            String
+  description     String?
+  type            String
+  value           Float    @default(0)
+  conditions      Json?
+  requiredPlan    String   @default("starter") @map("required_plan")
+  pointsCost      Int      @default(0) @map("points_cost")
+  isActive        Boolean  @default(true) @map("is_active")
+  sortOrder       Int      @default(0) @map("sort_order")
+
+  industry        Industry @relation(fields: [industryId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("reward_templates")
+}
+
+model PlatformConfig {
+  id            String   @id @default(uuid())
+  key           String   @unique
+  value         Json
+  description   String?
+  category      String   @default("general")
+  isPublic      Boolean  @default(false) @map("is_public")
+
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([category])
+  @@map("platform_configs")
+}
+
+model PlanDefinition {
+  id              String   @id @default(uuid())
+  name            String   @unique
+  slug            String   @unique
+  displayName     String   @map("display_name")
+  description     String?
+  price           Float
+  currency        String   @default("INR")
+  billingPeriod   String   @default("monthly") @map("billing_period")
+  features        Json
+  rewardTypes     String[] @map("reward_types")
+  maxProducts     Int      @default(50) @map("max_products")
+  maxCategories   Int      @default(10) @map("max_categories")
+  maxUsers        Int      @default(500) @map("max_users")
+  hasAnalytics    Boolean  @default(false) @map("has_analytics")
+  hasWhatsApp     Boolean  @default(false) @map("has_whatsapp")
+  hasCustomDomain Boolean  @default(false) @map("has_custom_domain")
+  isActive        Boolean  @default(true) @map("is_active")
+  sortOrder       Int      @default(0) @map("sort_order")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("plan_definitions")
+}
+
+model FAQ {
+  id            String   @id @default(uuid())
+  question      String
+  answer        String
+  category      String   @default("general")
+  isActive      Boolean  @default(true) @map("is_active")
+  sortOrder     Int      @default(0) @map("sort_order")
+
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("faqs")
+}
