@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model UserProfile {
+  id          String   @id @default(uuid())
+  userId      String   @unique @map("user_id")
+  firstName   String   @map("first_name")
+  lastName    String   @map("last_name")
+  email       String   @unique
+  phone       String?
+  avatar      String?
+  dateOfBirth DateTime? @map("date_of_birth")
+  gender      String?
+  companyId   String?  @map("company_id")
+  role        String   @default("user")
+  points      Int      @default(0)
+  totalVisits Int      @default(0) @map("total_visits")
+  tier        String   @default("bronze") // bronze, silver, gold, platinum
+  badges      String[] @default([])
+  referralCode String? @unique @map("referral_code")
+  referredBy   String? @map("referred_by")
+  isActive    Boolean  @default(true) @map("is_active")
+
+  address     Address?
+  preferences UserPreferences?
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([companyId])
+  @@index([email])
+  @@map("user_profiles")
+}
+
+model Address {
+  id          String @id @default(uuid())
+  userId      String @unique @map("user_id")
+  street      String?
+  city        String?
+  state       String?
+  zipCode     String? @map("zip_code")
+  country     String @default("India")
+
+  user        UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("addresses")
+}
+
+model UserPreferences {
+  id                  String  @id @default(uuid())
+  userId              String  @unique @map("user_id")
+  emailNotifications  Boolean @default(true) @map("email_notifications")
+  smsNotifications    Boolean @default(false) @map("sms_notifications")
+  pushNotifications   Boolean @default(true) @map("push_notifications")
+  language            String  @default("en")
+  theme               String  @default("light")
+
+  user                UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}

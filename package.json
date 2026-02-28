@@ -1,0 +1,40 @@
+{
+  "name": "beenbite-platform",
+  "version": "1.0.0",
+  "description": "Multi-tenant SaaS Reward Management Platform",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "services/*",
+    "frontend"
+  ],
+  "scripts": {
+    "dev:gateway": "cd services/api-gateway && npm run dev",
+    "dev:auth": "cd services/auth-service && npm run dev",
+    "dev:user": "cd services/user-service && npm run dev",
+    "dev:company": "cd services/company-service && npm run dev",
+    "dev:subscription": "cd services/subscription-service && npm run dev",
+    "dev:payment": "cd services/payment-service && npm run dev",
+    "dev:reward": "cd services/reward-service && npm run dev",
+    "dev:master": "cd services/master-data-service && npm run dev",
+    "dev:notification": "cd services/notification-service && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:all": "concurrently --names gateway,auth,user,company,sub,pay,reward,master,notif,web -c 'blue,green,yellow,magenta,cyan,red,white,gray,orange,purple' \"npm run dev:gateway\" \"npm run dev:auth\" \"npm run dev:user\" \"npm run dev:company\" \"npm run dev:subscription\" \"npm run dev:payment\" \"npm run dev:reward\" \"npm run dev:master\" \"npm run dev:notification\" \"npm run dev:frontend\"",
+    "build:all": "npm run build --workspaces",
+    "test:all": "npm run test --workspaces",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:build": "docker-compose build",
+    "db:migrate": "npm run migrate --workspaces --if-present",
+    "db:seed": "npm run seed --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

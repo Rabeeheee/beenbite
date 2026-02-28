@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RewardType {
+  points
+  discount
+  cashback
+  freebie
+  coupon
+  badge
+}
+
+model Reward {
+  id                String     @id @default(uuid())
+  companyId         String     @map("company_id")
+  name              String
+  description       String?
+  type              RewardType
+  value             Float
+  minPurchaseAmount Float?     @map("min_purchase_amount")
+  maxRedemptions    Int?       @map("max_redemptions")
+  currentRedemptions Int       @default(0) @map("current_redemptions")
+  categoryId        String?    @map("category_id")
+  industryType      String?    @map("industry_type")
+  requiredPlan      String     @default("starter") @map("required_plan")
+  startDate         DateTime?  @map("start_date")
+  endDate           DateTime?  @map("end_date")
+  isActive          Boolean    @default(true) @map("is_active")
+  conditions        Json?
+  couponCode        String?    @unique @map("coupon_code")
+  couponPrefix      String?    @map("coupon_prefix")
+
+  redemptions       RewardRedemption[]
+
+  createdAt         DateTime   @default(now()) @map("created_at")
+  updatedAt         DateTime   @updatedAt @map("updated_at")
+
+  @@index([companyId])
+  @@index([type])
+  @@index([industryType])
+  @@map("rewards")
+}
+
+model RewardRedemption {
+  id        String   @id @default(uuid())
+  rewardId  String   @map("reward_id")
+  userId    String   @map("user_id")
+  companyId String   @map("company_id")
+  value     Float
+  couponCode String? @map("coupon_code")
+  metadata  Json?
+  redeemedAt DateTime @default(now()) @map("redeemed_at")
+
+  reward    Reward   @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([companyId])
+  @@map("reward_redemptions")
+}
+
+model DynamicCoupon {
+  id         String   @id @default(uuid())
+  companyId  String   @map("company_id")
+  code       String   @unique
+  rewardId   String   @map("reward_id")
+  userId     String?  @map("user_id")
+  isUsed     Boolean  @default(false) @map("is_used")
+  usedAt     DateTime? @map("used_at")
+  expiresAt  DateTime  @map("expires_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([code])
+  @@index([companyId])
+  @@map("dynamic_coupons")
+}
